@@ -38,7 +38,7 @@ $ git clone https://github.com/buildroot/buildroot
   
 
 ```bash
-wget  https://buildroot.org/downloads/buildroot-2024.02.3.tar.bz2
+wget  wget https://buildroot.org/downloads/buildroot-2024.02.3.tar.xz
 ```
 
  获取buildroot源码后，可以单独获取我们支持 `AvaotaSBC` 的 `BR2_EXTERNAL` 源码。
@@ -60,7 +60,9 @@ $ cd buildroot/
  接下来执行配置命令，来使用 `avaota-a1`配置文件进行配置。
 
 ```bash
-buildroot/ $ make BR2_EXTERNAL=../buildroot-external-avaota avaota-a1_defconfig
+
+buildroot/ $ make BR2_EXTERNAL=../buildroot-external-avaota avaota_a1_defconfig
+
 ```
 
  指定配置文件后，可以使用 `make menuconfig` 命令来增加自己需要的包。
