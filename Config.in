@@ -1,1 +1,2 @@
 source "$BR2_EXTERNAL_AVAOTASBC_PATH/package/lvgl-desktop/Config.in"
+source "$BR2_EXTERNAL_AVAOTASBC_PATH/package/aic8800-firmware/Config.in"

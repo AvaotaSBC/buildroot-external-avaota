@@ -1,0 +1,4 @@
+config BR2_PACKAGE_AIC8800_FIRMWARE
+	bool "aic8800-firmware"
+	help
+	  aic8800 firmware.
