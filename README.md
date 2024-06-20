@@ -1,14 +1,4 @@
-# AvaotaSBC buildroot-external-tree
-
-AvaotaSBC For Buildroot LTS.
-
-## SourceCode 
-* Toolchain 
-* u-boot2018 
-* kernel
-
-## Configs
-
+# AvaotaSBC buildroot-external
 
 ## 快速开始
 
