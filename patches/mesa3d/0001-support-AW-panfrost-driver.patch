@@ -1,0 +1,37 @@
+From 6b9ab63363bca12cc0a498924df9774e08ef0841 Mon Sep 17 00:00:00 2001
+From: SamulKyull <SamulKyull@SamulKyull.com>
+Date: Thu, 20 Jun 2024 15:07:22 +0800
+Subject: [PATCH] support AW-panfrost driver
+
+---
+ src/gallium/targets/dri/meson.build | 1 +
+ src/gallium/targets/dri/target.c    | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/src/gallium/targets/dri/meson.build b/src/gallium/targets/dri/meson.build
+index 8392524..96c8ed7 100644
+--- a/src/gallium/targets/dri/meson.build
++++ b/src/gallium/targets/dri/meson.build
+@@ -100,6 +100,7 @@ foreach d : [[with_gallium_kmsro, [
+                'sti_dri.so',
+                'stm_dri.so',
+                'sun4i-drm_dri.so',
++               'sunxi-drm_dri.so',
+                'udl_dri.so',
+              ]],
+              [with_gallium_radeonsi, 'radeonsi_dri.so'],
+diff --git a/src/gallium/targets/dri/target.c b/src/gallium/targets/dri/target.c
+index 415e494..46ff2a3 100644
+--- a/src/gallium/targets/dri/target.c
++++ b/src/gallium/targets/dri/target.c
+@@ -128,6 +128,7 @@ DEFINE_LOADER_DRM_ENTRYPOINT(st7735r)
+ DEFINE_LOADER_DRM_ENTRYPOINT(sti)
+ DEFINE_LOADER_DRM_ENTRYPOINT(stm)
+ DEFINE_LOADER_DRM_ENTRYPOINT(sun4i_drm)
++DEFINE_LOADER_DRM_ENTRYPOINT(sunxi_drm)
+ DEFINE_LOADER_DRM_ENTRYPOINT(udl)
+ #endif
+ 
+-- 
+2.34.1
+
