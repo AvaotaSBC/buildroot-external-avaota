@@ -1,5 +1,7 @@
 # AvaotaSBC buildroot-external
 
+https://docs.avaota.fun/buildroot/index
+
 ## 快速开始
 
 ### 环境配置
