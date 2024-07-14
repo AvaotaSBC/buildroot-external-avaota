@@ -1,0 +1,12 @@
+diff --git a/tests/util/kms.c b/tests/util/kms.c
+index 39a9386..49d7592 100644
+--- a/tests/util/kms.c
++++ b/tests/util/kms.c
+@@ -146,6 +146,7 @@ static const char * const modules[] = {
+ 	"pl111",
+ 	"stm",
+ 	"sun4i-drm",
++	"sunxi-drm",
+ 	"armada-drm",
+ 	"komeda",
+ 	"imx-dcss",
