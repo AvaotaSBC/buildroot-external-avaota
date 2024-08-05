@@ -15,6 +15,11 @@ function download_and_set_latest_syterkit() {
 	declare api_url="https://api.github.com/repos/YuzukiHD/SyterKit/releases/latest"
 	declare latest_version
 	latest_version=$(curl -s "${api_url}" | jq -r '.tag_name')
+	if [ -z "$latest_version" ]; then
+ 		echo "ERROR: latest version of SyterKit get empty, check yor network connection"
+   		exit 1
+   	fi
+ 
 	echo "Latest version of SyterKit is" "${latest_version}"
 
 	# Prepare the cache dir
