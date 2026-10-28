@@ -1,10 +1,10 @@
 # Buildroot external tree for Avaota-F1 / Allwinner V821
 
 This repository contains only the Buildroot external tree for Avaota-F1. It is
-not a distribution framework and it does not contain an AvaotaOS build system,
-an AArch64 board configuration, a Mesa/Panfrost graphics stack, or unrelated
-board patches. The external tree was checked against the V821 Avaota-F1 board
-files and the RISC-V32 kernel configuration.
+not a distribution framework and it does not contain unrelated board
+configurations, graphics userspace, or distribution-specific patches. The
+external tree was checked against the V821 Avaota-F1 board files and the
+RISC-V32 kernel configuration.
 
 ## Repository split
 
@@ -83,10 +83,10 @@ sibling directory.
 
 The F1 board-specific decisions are intentional:
 
-- The kernel is RV32 (`rv32imafdc`, `ilp32d`) and does not enable DRM, Mali,
-  Panfrost, Lima, or Mesa.
+- The kernel is RV32 (`rv32imafdc`, `ilp32d`) and does not enable a board GPU
+  or DRM userspace.
 - The F1 DTS disables `gmac0` and `mdio0`; the Buildroot image therefore does
-  not install an automatic `eth0` DHCP policy.
+  not install an automatic wired DHCP policy.
 - The boot environment uses `ttyAS0` at 1500000 baud. The post-build hook
   adjusts BusyBox getty to the same rate because Buildroot 2024.02.3 does not
   expose a 1500000 baud Kconfig choice.

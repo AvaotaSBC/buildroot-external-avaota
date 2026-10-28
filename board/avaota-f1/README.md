@@ -11,7 +11,7 @@ root filesystem. No Tina checkout, toolchain, or makefile is required.
 The V821 F1 NOR map allocates 11136 sectors for `rootfs` and uses a SquashFS
 image. The external tree therefore selects SquashFS with xz compression rather
 than an uncompressed ext4 image. The F1 DTS disables the GMAC, so this board
-configuration does not request Buildroot's `eth0` DHCP setup.
+configuration does not request Buildroot's automatic wired DHCP setup.
 
 ## Build
 
