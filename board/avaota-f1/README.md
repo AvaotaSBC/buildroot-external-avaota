@@ -39,3 +39,12 @@ The post-image hook invokes the sibling `avaota-f1-image-tools` repository,
 which in turn builds U-Boot from the sibling `u-boot-v821` repository, to
 create the common Allwinner Phoenix/Dragon image plus independent raw
 SPI-NOR and SD images.
+
+`avaota-f1-sd.raw` is a real DOS/MBR disk image. Its four primary entries are
+`boot` at LBA52352, `rootfs` at LBA67712 (`/dev/mmcblk0p2`), `rootfs_data` at
+LBA87808, and `UDISK` at LBA98048 through the end. The V821 Boot0 copies
+remain at LBA16/LBA256, the primary and backup boot packages at
+LBA32800/LBA24576, and the Allwinner logical partition area starts at
+LBA40960. It can be inspected with `fdisk -l`/`sfdisk --dump` and written
+directly to an SD card; the default file size is 64 MiB. SPI-NOR uses the
+Allwinner MTD map and boots its root filesystem from `/dev/mtdblock7`.

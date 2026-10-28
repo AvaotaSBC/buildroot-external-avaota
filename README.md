@@ -78,7 +78,7 @@ The verified build emits:
 - `avaota-f1-flash.img` (common Allwinner Phoenix/Dragon image usable for
   SPI-NOR and SD flashing)
 - `avaota-f1-spinor.raw` (raw SPI-NOR image)
-- `avaota-f1-sd.raw` (raw SD image)
+- `avaota-f1-sd.raw` (DOS/MBR-partitioned, bootable raw SD image; root is p2)
 
 The `post-image.sh` hook calls
 `../avaota-f1-image-tools/pack-avaota-f1-images.sh` after Buildroot has
@@ -135,4 +135,6 @@ toolchain (`riscv32-buildroot-linux-gnu-`), not a Tina compiler. The kernel
 build is `ARCH=riscv`, uses the `ilp32d` ABI, and produces Linux 5.4.220.
 The expected intermediate images are `Image.gz`, `avaota-f1.dtb`, and an
 xz-compressed `rootfs.squashfs`; `post-image.sh` also writes the two flashable
-images, manifests, and the NOR-rootfs symlink.
+images, manifests, and the raw SD image with a standard DOS/MBR plus the
+Allwinner SD boot areas. The SD root is `/dev/mmcblk0p2`; the SPI-NOR root is
+`/dev/mtdblock7` with the V821 NOR logical offset supplied by U-Boot.
