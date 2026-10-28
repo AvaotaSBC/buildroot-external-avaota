@@ -9,10 +9,15 @@ V821_FIRMWARE_SITE = $(BR2_EXTERNAL_AVAOTAF1_PATH)/package/v821-firmware/firmwar
 V821_FIRMWARE_SITE_METHOD = local
 
 define V821_FIRMWARE_INSTALL_TARGET_CMDS
+	$(INSTALL) -D -m 0644 $(@D)/amp_rv0.bin $(TARGET_DIR)/lib/firmware/amp_rv0.bin
 	$(INSTALL) -D -m 0644 $(@D)/boot_v821.bin $(TARGET_DIR)/lib/firmware/boot_v821.bin
 	$(INSTALL) -D -m 0644 $(@D)/etf_v821.bin $(TARGET_DIR)/lib/firmware/etf_v821.bin
 	$(INSTALL) -D -m 0644 $(@D)/fw_mac_v821.bin $(TARGET_DIR)/lib/firmware/fw_mac_v821.bin
 	$(INSTALL) -D -m 0644 $(@D)/sdd_v821.bin $(TARGET_DIR)/lib/firmware/sdd_v821.bin
+	$(INSTALL) -D -m 0644 $(@D)/boot_v821b.bin $(TARGET_DIR)/lib/firmware/boot_v821b.bin
+	$(INSTALL) -D -m 0644 $(@D)/etf_v821b.bin $(TARGET_DIR)/lib/firmware/etf_v821b.bin
+	$(INSTALL) -D -m 0644 $(@D)/fw_mac_v821b.bin $(TARGET_DIR)/lib/firmware/fw_mac_v821b.bin
+	$(INSTALL) -D -m 0644 $(@D)/sdd_v821b.bin $(TARGET_DIR)/lib/firmware/sdd_v821b.bin
 endef
 
 $(eval $(generic-package))

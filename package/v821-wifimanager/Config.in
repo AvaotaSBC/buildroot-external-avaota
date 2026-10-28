@@ -1,0 +1,7 @@
+config BR2_PACKAGE_V821_WIFIMANAGER
+	bool "V821 XRLINK Wi-Fi manager"
+	select BR2_PACKAGE_V821_FIRMWARE
+	help
+	  Build the V821 FMAC user-space manager used by the Avaota-F1 Tina
+	  configuration. This is the XRLINK STA/AP path, not cfg80211 or the
+	  generic wpa_supplicant path. It installs wifi_daemon and wifi.

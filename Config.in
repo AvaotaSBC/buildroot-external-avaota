@@ -1,5 +1,6 @@
 menu "Avaota-F1 packages"
 
 source "$BR2_EXTERNAL_AVAOTAF1_PATH/package/v821-firmware/Config.in"
+source "$BR2_EXTERNAL_AVAOTAF1_PATH/package/v821-wifimanager/Config.in"
 
 endmenu

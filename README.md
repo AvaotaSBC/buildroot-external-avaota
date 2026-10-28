@@ -43,8 +43,11 @@ checkout:
 
 Vendor-generated rootfs/makefiles and the vendor toolchain are not build
 inputs. Buildroot supplies the userspace, its internal RISC-V32 toolchain, and
-the final SquashFS image. The four small V821 FMAC/remote-core firmware files
-are shipped as board runtime assets by the optional `v821-firmware` package.
+the final SquashFS image. The V821 E907/FMAC runtime assets are shipped by the
+optional `v821-firmware` package. The optional `v821-wifimanager` package
+contains the F1 Tina-selected XRLINK STA/AP control path, including
+`wifi_daemon` and `wifi`; it is a source package in this repository and does
+not read Tina at build time.
 
 The Linux extension file supplies the two variables that the legacy V821 BSP
 makefiles need:
@@ -97,11 +100,12 @@ The F1 board-specific decisions are intentional:
   or DRM userspace.
 - The F1 DTS disables `gmac0` and `mdio0`; the Buildroot image therefore does
   not install an automatic wired DHCP policy.
-- The boot environment uses `ttyAS0` at 1500000 baud. The post-build hook
-  adjusts BusyBox getty to the same rate because Buildroot 2024.02.3 does not
-  expose a 1500000 baud Kconfig choice.
+- The boot environment and BusyBox getty use `ttyAS0` at 115200 baud.
 - The kernel command line keeps the board's `/init` contract while the target
   rootfs remains Buildroot's normal BusyBox init.
+- V821 Wi-Fi starts through the E907 remoteproc and `v821_fmac` module before
+  the XRLINK `wifi_daemon`. This is the vendor V821 control protocol, not a
+  generic cfg80211/wpa_supplicant substitution.
 
 The V821 Boot0/FES/PMBoot binaries remain board-specific prebuilt assets:
 their DRAM code uses Andes instructions and vendor relocation types that the

@@ -1,5 +1,6 @@
 config BR2_PACKAGE_V821_FIRMWARE
-	bool "V821 wireless firmware"
+	bool "V821 remote-core and wireless firmware"
 	help
-	  Install the V821 WLAN/FMAC runtime firmware exported from the vendor BSP.
-	  The files are copied into /lib/firmware in the target root filesystem.
+	  Install the V821 E907 remote-core image and V821/V821B WLAN/FMAC
+	  runtime firmware exported from the vendor BSP. The files are copied
+	  into /lib/firmware in the target root filesystem.

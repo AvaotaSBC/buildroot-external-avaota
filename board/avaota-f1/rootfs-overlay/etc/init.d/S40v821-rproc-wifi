@@ -1,0 +1,55 @@
+#!/bin/sh
+
+# V821's WLAN is an E907 remote-core device. Boot0 loads amp_rv0.bin from the
+# riscv0 boot-package partition; this service preserves Tina's Linux-side
+# ordering by making sure remoteproc is running before v821_fmac is inserted.
+
+STATE=/sys/class/remoteproc/remoteproc0/state
+MODULE_DIR=/lib/modules/$(uname -r)
+FMAC_MODULE=${MODULE_DIR}/kernel/bsp/drivers/net/wireless/v821_fmac/v821_fmac.ko
+
+start() {
+	echo "Starting V821 remoteproc/WLAN"
+
+	if [ -w "${STATE}" ]; then
+		state=$(cat "${STATE}" 2>/dev/null || true)
+		case "${state}" in
+			running|attached)
+				;;
+			*)
+				echo start > "${STATE}" || echo "warning: failed to start ${STATE}" >&2
+				;;
+		esac
+	else
+		echo "warning: V821 remoteproc state is unavailable" >&2
+	fi
+
+	if [ -f "${FMAC_MODULE}" ] && ! grep -q '^v821_fmac ' /proc/modules 2>/dev/null; then
+		insmod "${FMAC_MODULE}" || echo "warning: failed to load ${FMAC_MODULE}" >&2
+	fi
+}
+
+stop() {
+	if grep -q '^v821_fmac ' /proc/modules 2>/dev/null; then
+		rmmod v821_fmac || true
+	fi
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart|reload)
+		stop
+		start
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart}"
+		exit 1
+		;;
+esac
+
+exit 0

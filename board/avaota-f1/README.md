@@ -13,6 +13,11 @@ image. The external tree therefore selects SquashFS with xz compression rather
 than an uncompressed ext4 image. The F1 DTS disables the GMAC, so this board
 configuration does not request Buildroot's automatic wired DHCP setup.
 
+The V821 FMAC path is enabled with the standalone `v821-wifimanager` package.
+Its init scripts start `remoteproc0`, load `v821_fmac.ko`, and then start the
+XRLINK STA/AP manager; this matches the F1 Tina flow without requiring a Tina
+checkout.
+
 ## Build
 
 Keep the external tree, kernel, U-Boot, and image-tools repositories as

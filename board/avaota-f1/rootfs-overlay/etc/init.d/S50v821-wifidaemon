@@ -1,0 +1,42 @@
+#!/bin/sh
+
+# This is the F1 Tina startup policy for the XRLINK V821 FMAC path. The
+# manager is optional at package level, so a base image without it remains
+# bootable and can still load the kernel driver through S40.
+
+start() {
+	if [ ! -x /bin/wifi_daemon ] || [ ! -x /bin/wifi ]; then
+		return 0
+	fi
+
+	echo "Starting V821 XRLINK Wi-Fi manager"
+	wifi_daemon
+	sleep 2
+	wifi -o sta
+	wifi -a enable
+}
+
+stop() {
+	if [ -x /bin/wifi ]; then
+		wifi -f >/dev/null 2>&1 || true
+	fi
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart|reload)
+		stop
+		start
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart}"
+		exit 1
+		;;
+esac
+
+exit 0
