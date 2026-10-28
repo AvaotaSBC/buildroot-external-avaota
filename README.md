@@ -12,17 +12,18 @@ RISC-V32 kernel configuration.
 | --- | --- |
 | `buildroot-external-avaota` | Buildroot board configuration, package, firmware and rootfs/image hooks |
 | `linux-v821` | Linux 5.4.220 plus the V821 BSP and Avaota-F1 DTS/configuration |
-| `bootloader-v821` | Standalone V821 U-Boot build, Allwinner boot stages and NOR/SD image packer |
+| `u-boot-v821` | Standalone V821 U-Boot source and Avaota-F1 NOR/SD U-Boot build wrapper |
+| `avaota-f1-image-tools` | Allwinner boot stages, board image inputs and NOR/SD image assembly |
 
-The three repositories are siblings in the verification workspace and are
-intended to become three independent repositories. The external tree refers to
+The four repositories are siblings in the verification workspace and are
+intended to become four independent repositories. The external tree refers to
 the kernel through a local Git URL so the exact source is reproducible without
 Tina. After publishing `linux-v821`, change the one repository URL in
 `configs/avaota_f1_defconfig` to the published Git URL.
 
 ## Source boundary
 
-The final build has three source repositories and one upstream Buildroot
+The final build has four source repositories and one upstream Buildroot
 checkout:
 
 - `buildroot-external-avaota` (this repository) owns Buildroot configuration,
@@ -30,10 +31,14 @@ checkout:
 - `linux-v821` owns Linux 5.4.220, the V821 BSP, and the F1 DTS/configuration.
   The kernel and BSP source were exported from the local V821 BSP into that
   repository; no Tina checkout is read during a build.
-- `bootloader-v821` owns U-Boot, board FEX files, boot-stage assets, Allwinner
-  packing tools, and NOR/SD image assembly. The bootloader repository contains
-  the board partition and environment inputs; this external tree deliberately
-  does not duplicate them.
+- `u-boot-v821` owns the V821 U-Boot source, the two F1 storage-specific board
+  DTS inputs, and the out-of-tree build wrapper. It follows the Buildroot
+  bootloader boundary: U-Boot is built from source with the Buildroot
+  RISC-V32 compiler.
+- `avaota-f1-image-tools` owns the board FEX partition/environment inputs,
+  board-specific prebuilt boot stages, Allwinner host tools, and final
+  SPI-NOR/SD image assembly. It calls the sibling `u-boot-v821` wrapper and
+  does not contain a second copy of U-Boot.
 - `buildroot` is the upstream Buildroot 2024.02.3 checkout.
 
 Vendor-generated rootfs/makefiles and the vendor toolchain are not build
@@ -68,18 +73,19 @@ The verified build emits:
 
 - `Image.gz`
 - `avaota-f1.dtb`
-- `rootfs.squashfs` (xz compressed, suitable for the Tina NOR rootfs slot)
+- `rootfs.squashfs` (xz compressed, suitable for the F1 NOR rootfs slot)
 - `avaota-f1-rootfs-nor.squashfs` and a build manifest
 - `avaota-f1-spinor.raw` (raw SPI-NOR image)
 - `avaota-f1-sd.img` (Allwinner Phoenix/Dragon SD-card image)
 - `avaota-f1-nor-env.fex` and `avaota-f1-sd-env.fex`
 
-The `post-image.sh` hook calls `../bootloader-v821/pack-v821.sh` after
-Buildroot has produced the kernel, DTB and rootfs. The packer rebuilds U-Boot
-with Buildroot's `riscv32-buildroot-linux-gnu-` compiler, creates the Android
-header-v2 `boot.fex`, and assembles the two final images. Set
-`AVAOTA_BOOTLOADER_DIR` if the bootloader repository is not the default
-sibling directory.
+The `post-image.sh` hook calls
+`../avaota-f1-image-tools/pack-avaota-f1-images.sh` after Buildroot has
+produced the kernel, DTB and rootfs. The image-tools script calls
+`../u-boot-v821/build-u-boot-v821.sh` for both storage variants, creates the
+Android header-v2 `boot.fex`, and assembles the two final images. Set
+`AVAOTA_IMAGE_TOOLS_DIR` and/or `AVAOTA_UBOOT_DIR` if these repositories are
+not the default sibling directories.
 
 The F1 board-specific decisions are intentional:
 
@@ -96,14 +102,15 @@ The F1 board-specific decisions are intentional:
 The V821 Boot0/FES/PMBoot binaries remain board-specific prebuilt assets:
 their DRAM code uses Andes instructions and vendor relocation types that the
 generic Buildroot binutils cannot link. U-Boot, Linux, DTB, rootfs and image
-layout/packaging are built independently. The bootloader repository contains
+layout/packaging are built independently. The image-tools repository contains
 the required Allwinner host utilities and Dragon plugin files, but the host
 still needs a compatible 32-bit glibc/libstdc++ runtime for the Phoenix tool.
 
 ## Reproducible verification
 
-From a workspace containing the four sibling directories `buildroot`,
-`buildroot-external-avaota`, `linux-v821`, and `bootloader-v821`:
+From a workspace containing the five sibling directories `buildroot`,
+`buildroot-external-avaota`, `linux-v821`, `u-boot-v821`, and
+`avaota-f1-image-tools`:
 
 ```sh
 make -C buildroot \

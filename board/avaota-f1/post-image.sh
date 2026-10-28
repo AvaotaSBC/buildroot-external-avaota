@@ -11,20 +11,26 @@ if [ ! -f "${rootfs}" ]; then
 fi
 
 external_dir=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
-bootloader_dir="${AVAOTA_BOOTLOADER_DIR:-${external_dir}/../bootloader-v821}"
+image_tools_dir="${AVAOTA_IMAGE_TOOLS_DIR:-${external_dir}/../avaota-f1-image-tools}"
+uboot_dir="${AVAOTA_UBOOT_DIR:-${external_dir}/../u-boot-v821}"
 host_dir="${HOST_DIR:-$(CDPATH= cd -- "${BINARIES_DIR}/../host" && pwd)}"
 build_dir="${BUILD_DIR:-${BINARIES_DIR}/../build}"
 toolchain_prefix="${host_dir}/bin/riscv32-buildroot-linux-gnu-"
 
-if [ ! -x "${bootloader_dir}/pack-v821.sh" ]; then
-	echo "error: bootloader repository not found: ${bootloader_dir}" >&2
+if [ ! -x "${image_tools_dir}/pack-avaota-f1-images.sh" ]; then
+	echo "error: Avaota-F1 image-tools repository not found: ${image_tools_dir}" >&2
+	exit 1
+fi
+if [ ! -x "${uboot_dir}/build-u-boot-v821.sh" ]; then
+	echo "error: V821 U-Boot repository not found: ${uboot_dir}" >&2
 	exit 1
 fi
 
-"${bootloader_dir}/pack-v821.sh" \
+"${image_tools_dir}/pack-avaota-f1-images.sh" \
 	--binaries-dir "${BINARIES_DIR}" \
-	--build-dir "${build_dir}/bootloader-v821" \
+	--build-dir "${build_dir}/avaota-f1-image-tools" \
 	--output-dir "${BINARIES_DIR}" \
+	--u-boot-dir "${uboot_dir}" \
 	--toolchain-prefix "${toolchain_prefix}"
 
 # The F1 NOR partition table calls this partition rootfs_nor.fex. The image is
