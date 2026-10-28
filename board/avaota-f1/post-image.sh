@@ -27,8 +27,8 @@ fi
 	--output-dir "${BINARIES_DIR}" \
 	--toolchain-prefix "${toolchain_prefix}"
 
-# The Tina NOR layout calls this partition rootfs_nor.fex. The image is a
-# standard SquashFS image and can be handed to a separate boot/flash packer.
+# The F1 NOR partition table calls this partition rootfs_nor.fex. The image is
+# a standard SquashFS image and can be handed to the boot/flash packer.
 ln -sf rootfs.squashfs "${BINARIES_DIR}/avaota-f1-rootfs-nor.squashfs"
 
 {

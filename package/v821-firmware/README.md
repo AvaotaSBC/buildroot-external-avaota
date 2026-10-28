@@ -2,4 +2,5 @@
 
 These four small V821 FMAC/remote-core runtime files are installed under
 `/lib/firmware` by the optional `BR2_PACKAGE_V821_FIRMWARE` package. They are
-board runtime assets, not a toolchain or a build-system dependency.
+binary board runtime assets exported from the vendor V821 BSP, not a toolchain
+or a build-system dependency.

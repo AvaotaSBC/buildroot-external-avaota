@@ -1,5 +1,5 @@
 config BR2_PACKAGE_V821_FIRMWARE
 	bool "V821 wireless firmware"
 	help
-	  Install the V821 WLAN firmware exported from the Tina/OpenWrt tree.
+	  Install the V821 WLAN/FMAC runtime firmware exported from the vendor BSP.
 	  The files are copied into /lib/firmware in the target root filesystem.

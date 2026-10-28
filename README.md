@@ -36,7 +36,7 @@ checkout:
   does not duplicate them.
 - `buildroot` is the upstream Buildroot 2024.02.3 checkout.
 
-Tina's generated rootfs, Tina makefiles, and Tina toolchain are not build
+Vendor-generated rootfs/makefiles and the vendor toolchain are not build
 inputs. Buildroot supplies the userspace, its internal RISC-V32 toolchain, and
 the final SquashFS image. The four small V821 FMAC/remote-core firmware files
 are shipped as board runtime assets by the optional `v821-firmware` package.
