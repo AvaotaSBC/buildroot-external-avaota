@@ -75,15 +75,19 @@ The verified build emits:
 - `avaota-f1.dtb`
 - `rootfs.squashfs` (xz compressed, suitable for the F1 NOR rootfs slot)
 - `avaota-f1-rootfs-nor.squashfs` and a build manifest
+- `avaota-f1-flash.img` (common Allwinner Phoenix/Dragon image usable for
+  SPI-NOR and SD flashing)
 - `avaota-f1-spinor.raw` (raw SPI-NOR image)
-- `avaota-f1-sd.img` (Allwinner Phoenix/Dragon SD-card image)
-- `avaota-f1-nor-env.fex` and `avaota-f1-sd-env.fex`
+- `avaota-f1-sd.raw` (raw SD image)
 
 The `post-image.sh` hook calls
 `../avaota-f1-image-tools/pack-avaota-f1-images.sh` after Buildroot has
 produced the kernel, DTB and rootfs. The image-tools script calls
 `../u-boot-v821/build-u-boot-v821.sh` for both storage variants, creates the
-Android header-v2 `boot.fex`, and assembles the two final images. Set
+Android header-v2 `boot.fex`, and assembles the common Allwinner image plus
+the two raw images. The common image follows Tina's packaging model: it
+contains both storage-specific boot files and uses the NOR partition map so
+the same Phoenix/Dragon file can be used for SPI-NOR or SD flashing. Set
 `AVAOTA_IMAGE_TOOLS_DIR` and/or `AVAOTA_UBOOT_DIR` if these repositories are
 not the default sibling directories.
 

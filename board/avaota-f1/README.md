@@ -33,7 +33,9 @@ make O=../output
 
 The important files are `output/images/Image.gz`,
 `output/images/avaota-f1.dtb`, `output/images/rootfs.squashfs`,
-`output/images/avaota-f1-spinor.raw`, and `output/images/avaota-f1-sd.img`.
+`output/images/avaota-f1-flash.img`, `output/images/avaota-f1-spinor.raw`,
+and `output/images/avaota-f1-sd.raw`.
 The post-image hook invokes the sibling `avaota-f1-image-tools` repository,
 which in turn builds U-Boot from the sibling `u-boot-v821` repository, to
-create the raw SPI-NOR image and the Allwinner Phoenix/Dragon SD image.
+create the common Allwinner Phoenix/Dragon image plus independent raw
+SPI-NOR and SD images.
