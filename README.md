@@ -9,11 +9,12 @@ repository's AArch64 Avaota-A1 configuration.
 
 | Repository | Contents |
 | --- | --- |
-| `buildroot-external-avaota` | Buildroot board configuration, package, firmware, rootfs hooks and boot/flash reference assets |
+| `buildroot-external-avaota` | Buildroot board configuration, package, firmware and rootfs/image hooks |
 | `linux-v821` | Linux 5.4.220 plus the V821 BSP and Avaota-F1 DTS/configuration |
+| `bootloader-v821` | Standalone V821 U-Boot build, Allwinner boot stages and NOR/SD image packer |
 
-The two directories are siblings in the verification workspace and are
-intended to become two independent repositories. The external tree refers to
+The three repositories are siblings in the verification workspace and are
+intended to become three independent repositories. The external tree refers to
 the kernel through a local Git URL so the exact source is reproducible without
 Tina. After publishing `linux-v821`, change the one repository URL in
 `configs/avaota_f1_defconfig` to the published Git URL.
@@ -32,9 +33,9 @@ The conversion keeps the board-specific source boundary explicit:
    filesystem through the rootfs overlay, the `v821-firmware` package, and
    SquashFS generation.
 4. The F1 NOR FEX files and board U-Boot DTS were copied as reference inputs
-   under `board/avaota-f1/tina-boot/`. They are deliberately not executed by
-   Buildroot because the proprietary Tina pack flow is not part of this
-   repository.
+   under `board/avaota-f1/tina-boot/`. The executable boot/flash integration
+   lives in the separate `bootloader-v821` repository, so this external tree
+   does not need Tina's proprietary pack flow.
 
 The Linux extension file supplies the two variables that Tina normally adds
 implicitly:
@@ -66,16 +67,28 @@ The verified build emits:
 - `avaota-f1.dtb`
 - `rootfs.squashfs` (xz compressed, suitable for the Tina NOR rootfs slot)
 - `avaota-f1-rootfs-nor.squashfs` and a build manifest
+- `avaota-f1-spinor.raw` (raw SPI-NOR image)
+- `avaota-f1-sd.img` (Allwinner Phoenix/Dragon SD-card image)
+- `avaota-f1-nor-env.fex` and `avaota-f1-sd-env.fex`
 
-Buildroot does not build Tina's proprietary Allwinner pack scripts. The
-copied files under `board/avaota-f1/tina-boot/` preserve the original NOR
-partition and board configuration for a later, independent bootloader/flash
-integration.
+The `post-image.sh` hook calls `../bootloader-v821/pack-v821.sh` after
+Buildroot has produced the kernel, DTB and rootfs. The packer rebuilds U-Boot
+with Buildroot's `riscv32-buildroot-linux-gnu-` compiler, creates the Android
+header-v2 `boot.fex`, and assembles the two final images. Set
+`AVAOTA_BOOTLOADER_DIR` if the bootloader repository is not the default
+sibling directory.
+
+The V821 Boot0/FES/PMBoot binaries remain board-specific prebuilt assets:
+their DRAM code uses Andes instructions and vendor relocation types that the
+generic Buildroot binutils cannot link. U-Boot, Linux, DTB, rootfs and image
+layout/packaging are built independently. The bootloader repository contains
+the required Allwinner host utilities and Dragon plugin files, but the host
+still needs a compatible 32-bit glibc/libstdc++ runtime for the Phoenix tool.
 
 ## Reproducible verification
 
-From a workspace containing the three sibling directories `buildroot`,
-`buildroot-external-avaota`, and `linux-v821`:
+From a workspace containing the four sibling directories `buildroot`,
+`buildroot-external-avaota`, `linux-v821`, and `bootloader-v821`:
 
 ```sh
 make -C buildroot \
@@ -84,9 +97,16 @@ make -C buildroot \
 make -C buildroot O="$PWD/output" -j"$(nproc)"
 ```
 
+The final images are written to `output/images/`. To run only the image
+integration again after the normal Buildroot build:
+
+```sh
+make -C buildroot O="$PWD/output" target-post-image
+```
+
 The verified configuration uses Buildroot's internal RISC-V32 glibc
 toolchain (`riscv32-buildroot-linux-gnu-`), not a Tina compiler. The kernel
 build is `ARCH=riscv`, uses the `ilp32d` ABI, and produces Linux 5.4.220.
-The expected images are `Image.gz`, `avaota-f1.dtb`, and an xz-compressed
-`rootfs.squashfs`; `post-image.sh` also writes a manifest and the NOR-rootfs
-symlink.
+The expected intermediate images are `Image.gz`, `avaota-f1.dtb`, and an
+xz-compressed `rootfs.squashfs`; `post-image.sh` also writes the two flashable
+images, manifests, and the NOR-rootfs symlink.
