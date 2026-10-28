@@ -52,4 +52,5 @@ remain at LBA16/LBA256, the primary and backup boot packages at
 LBA32800/LBA24576, and the Allwinner logical partition area starts at
 LBA40960. It can be inspected with `fdisk -l`/`sfdisk --dump` and written
 directly to an SD card; the default file size is 64 MiB. SPI-NOR uses the
-Allwinner MTD map and boots its root filesystem from `/dev/mtdblock7`.
+Allwinner MTD map and boots its root filesystem from `/dev/mtdblock6`
+(`rootfs`; `rootfs_data` is mtd7).

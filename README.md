@@ -143,4 +143,5 @@ The expected intermediate images are `Image.gz`, `avaota-f1.dtb`, and an
 xz-compressed `rootfs.squashfs`; `post-image.sh` also writes the two flashable
 images, manifests, and the raw SD image with a standard DOS/MBR plus the
 Allwinner SD boot areas. The SD root is `/dev/mmcblk0p2`; the SPI-NOR root is
-`/dev/mtdblock7` with the V821 NOR logical offset supplied by U-Boot.
+`/dev/mtdblock6` (`rootfs`; `rootfs_data` is mtd7) with the V821 NOR logical
+offset supplied by U-Boot.
