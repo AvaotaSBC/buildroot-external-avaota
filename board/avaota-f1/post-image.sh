@@ -33,9 +33,9 @@ fi
 	--u-boot-dir "${uboot_dir}" \
 	--toolchain-prefix "${toolchain_prefix}"
 
-# The F1 NOR partition table calls this partition rootfs_nor.fex. The image is
-# a standard SquashFS image and can be handed to the boot/flash packer.
-ln -sf rootfs.squashfs "${BINARIES_DIR}/avaota-f1-rootfs-nor.squashfs"
+# Remove the alias emitted by the retired NOR-rootfs handoff flow.
+find "${BINARIES_DIR}" -maxdepth 1 -type l \
+	-name 'avaota-f1-rootfs-nor.squashfs' -delete
 
 {
 	echo "board=Avaota-F1"

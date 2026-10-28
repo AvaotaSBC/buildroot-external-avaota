@@ -74,7 +74,7 @@ The verified build emits:
 - `Image.gz`
 - `avaota-f1.dtb`
 - `rootfs.squashfs` (xz compressed, suitable for the F1 NOR rootfs slot)
-- `avaota-f1-rootfs-nor.squashfs` and a build manifest
+- build and image manifests
 - `avaota-f1-flash.img` (common Allwinner Phoenix/Dragon image usable for
   SPI-NOR and SD flashing)
 - `avaota-f1-spinor.raw` (raw SPI-NOR image)
