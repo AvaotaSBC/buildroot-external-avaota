@@ -100,7 +100,9 @@ The F1 board-specific decisions are intentional:
   or DRM userspace.
 - The F1 DTS disables `gmac0` and `mdio0`; the Buildroot image therefore does
   not install an automatic wired DHCP policy.
-- The boot environment and BusyBox getty use `ttyAS0` at 115200 baud.
+- The boot environment and BusyBox getty use the V821 `uart-ng` device
+  `ttyS0` at 115200 baud. (`ttyAS0` is only selected when the kernel is built
+  with its 8250 compatibility layer, which this configuration does not use.)
 - The kernel command line keeps the board's `/init` contract while the target
   rootfs remains Buildroot's normal BusyBox init.
 - V821 Wi-Fi starts through the E907 remoteproc and `v821_fmac` module before
