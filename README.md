@@ -60,18 +60,24 @@ runtime contract is FunctionFS, not the obsolete `android_usb` sysfs API:
 the daemon with `adbd -D` and uses `/bin/sh` for shell services.
 
 This external tree selects Buildroot's native `android-tools` `adbd` package
-(`BR2_PACKAGE_ANDROID_TOOLS_ADBD`) and keeps the same V821 contract in
-`board/avaota-f1/rootfs-overlay/etc/init.d/S30adbd`. The service creates the
-F1 gadget with VID:PID `1f3a:1002`, derives the serial number from
-`androidboot.serialno`/`snum`, mounts FunctionFS, starts `/usr/bin/adbd -D`,
-and binds the first UDC exported by the kernel. Buildroot's package patch
-uses `ADBD_NON_ANDROID`, so an ADB shell executes the Buildroot `/bin/sh`
-instead of Tina's `/system/bin/sh`.
+(`BR2_PACKAGE_ANDROID_TOOLS_ADBD`) and enables it by default through
+`board/avaota-f1/rootfs-overlay/etc/init.d/S80adbd`. Buildroot's BusyBox init
+executes that `S80*` script during every normal boot; no manual service-enable
+step is required. The service calls the ADB-only
+`board/avaota-f1/rootfs-overlay/bin/setusbconfig adb` helper, which follows
+Tina's configfs/FunctionFS layout, derives the serial number from
+`androidboot.serialno`/`snum`, starts `/usr/bin/adbd -D`, waits for FunctionFS
+endpoints, and binds the first UDC exported by the kernel. The gadget uses
+VID:PID `1f3a:1002` and the product string `Avaota-F1 ADB`. Buildroot's
+package patch uses `ADBD_NON_ANDROID`, so an ADB shell executes the Buildroot
+`/bin/sh` instead of Tina's `/system/bin/sh`.
 
 The standalone kernel configuration explicitly includes
 `CONFIG_USB_CONFIGFS_F_FS`, `CONFIG_USB_F_FS`, and `CONFIG_CONFIGFS_FS` in
 addition to the V821 Sunxi UDC options. No Tina `adbd` binary, old Android
-source tree, `setusbconfig` package, or vendor toolchain is a Buildroot input.
+source tree, complete Tina `setusbconfig` package, or vendor toolchain is a
+Buildroot input; only the small ADB-specific helper is kept in the rootfs
+overlay.
 
 The Linux extension file supplies the two variables that the legacy V821 BSP
 makefiles need:

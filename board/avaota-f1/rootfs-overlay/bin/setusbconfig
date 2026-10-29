@@ -1,0 +1,99 @@
+#!/bin/sh
+
+# ADB-only subset of Tina's platform/allwinner/usb/setusbconfig.  The
+# complete Tina helper supports MTP, RNDIS, UVC and other functions; this
+# standalone Buildroot image intentionally exposes only the function it
+# selects at build time: ADB.
+
+CONFIGFS=/sys/kernel/config
+GADGET=${CONFIGFS}/usb_gadget/g1
+CONFIG=${GADGET}/configs/c.1
+FUNCTION=${GADGET}/functions/ffs.adb
+FFS_DIR=/dev/usb-ffs/adb
+
+# Keep a stable, host-detectable ADB identity.  The configfs topology and
+# FunctionFS mount are the same ones used by Tina's adbd.init.
+ADB_VID=0x1f3a
+ADB_PID=0x1002
+
+get_serial() {
+	serial=avaota-f1
+	for arg in $(cat /proc/cmdline 2>/dev/null); do
+		case "${arg}" in
+			androidboot.serialno=*) serial=${arg#androidboot.serialno=} ;;
+			snum=*) serial=${arg#snum=} ;;
+		esac
+	done
+	printf '%s\n' "${serial}"
+}
+
+mount_configfs() {
+	if [ ! -d "${CONFIGFS}/usb_gadget" ]; then
+		mkdir -p "${CONFIGFS}"
+		mount -t configfs none "${CONFIGFS}" || return 1
+	fi
+	[ -d "${CONFIGFS}/usb_gadget" ]
+}
+
+unbind_gadget() {
+	if [ -e "${GADGET}/UDC" ] && [ -n "$(cat "${GADGET}/UDC" 2>/dev/null)" ]; then
+		echo "" > "${GADGET}/UDC" || return 1
+	fi
+}
+
+remove_stale_links() {
+	# Match Tina's single-function setup: remove old configuration links
+	# before adding ffs.adb.  The function directories themselves are left
+	# intact so a later userspace restart does not race configfs teardown.
+	for link in \
+		ffs.mtp mtp.gs0 f1 rndis.usb0 ncm.usb0 acm.usb0 uac1.usb0 \
+		accessory.usb0 hid.usb0 hid.usb1 loopback.usb0 gser.usb0 \
+		printer.usb0 ecm.usb0 mass_storage.usb0 uvc.usb0; do
+		[ -e "${CONFIG}/${link}" ] || [ -L "${CONFIG}/${link}" ] || continue
+		rm -f "${CONFIG}/${link}"
+	done
+	[ -e "${CONFIG}/ffs.adb" ] || [ -L "${CONFIG}/ffs.adb" ] || return 0
+	rm -f "${CONFIG}/ffs.adb"
+}
+
+configure_adb() {
+	mount_configfs || return 1
+	unbind_gadget || return 1
+
+	mkdir -p "${GADGET}/strings/0x409" || return 1
+	mkdir -p "${CONFIG}/strings/0x409" || return 1
+	mkdir -p "${FUNCTION}" || return 1
+
+	echo "${ADB_VID}" > "${GADGET}/idVendor" || return 1
+	echo "${ADB_PID}" > "${GADGET}/idProduct" || return 1
+	echo "Allwinner Technology Inc." > "${GADGET}/strings/0x409/manufacturer" || return 1
+	echo "Avaota-F1 ADB" > "${GADGET}/strings/0x409/product" || return 1
+	echo "$(get_serial)" > "${GADGET}/strings/0x409/serialnumber" || return 1
+	echo 0xc0 > "${CONFIG}/bmAttributes" || return 1
+	echo 500 > "${CONFIG}/MaxPower" || return 1
+	echo "ADB" > "${CONFIG}/strings/0x409/configuration" || return 1
+
+	remove_stale_links || return 1
+	ln -s "${FUNCTION}" "${CONFIG}/ffs.adb" || return 1
+
+	mkdir -p /dev/usb-ffs "${FFS_DIR}" || return 1
+	if ! grep -q "[[:space:]]${FFS_DIR}[[:space:]]functionfs[[:space:]]" /proc/mounts 2>/dev/null &&
+	   [ ! -e "${FFS_DIR}/ep0" ]; then
+		mount -o uid=2000,gid=2000 -t functionfs adb "${FFS_DIR}" || return 1
+	fi
+}
+
+case "$1" in
+	adb)
+		configure_adb
+		;;
+	none)
+		mount_configfs && unbind_gadget && remove_stale_links
+		;;
+	*)
+		echo "Usage: $0 {adb|none}" >&2
+		exit 1
+		;;
+esac
+
+exit $?

@@ -1,0 +1,119 @@
+#!/bin/sh
+
+# Tina starts adbd at START=80.  Buildroot's BusyBox init executes S??*
+# scripts directly, so the S80 name makes the service enabled by default.
+# The service uses the same configfs + FunctionFS layout as Tina, but keeps
+# the UDC unbound until adbd has published its FunctionFS descriptors.
+
+ADBD=/usr/bin/adbd
+SETUSBCONFIG=/bin/setusbconfig
+PIDFILE=/var/run/adbd.pid
+CONFIGFS=/sys/kernel/config
+GADGET=${CONFIGFS}/usb_gadget/g1
+FFS_DIR=/dev/usb-ffs/adb
+
+unbind_gadget() {
+	if [ -e "${GADGET}/UDC" ] && [ -n "$(cat "${GADGET}/UDC" 2>/dev/null)" ]; then
+		echo "" > "${GADGET}/UDC" || true
+	fi
+}
+
+adbd_running() {
+	[ -s "${PIDFILE}" ] || return 1
+	pid=$(cat "${PIDFILE}" 2>/dev/null) || return 1
+	[ -n "${pid}" ] && kill -0 "${pid}" 2>/dev/null
+}
+
+bind_udc() {
+	tries=0
+	while [ "${tries}" -lt 20 ]; do
+		if ! adbd_running; then
+			echo "adbd: daemon exited before USB gadget was ready" >&2
+			return 1
+		fi
+
+		# FunctionFS creates ep1/ep2 after adbd writes its descriptors.  Do
+		# not expose the gadget before that point; this is the important
+		# ordering difference from a blind configfs bind.
+		if [ -e "${FFS_DIR}/ep1" ] && [ -e "${FFS_DIR}/ep2" ]; then
+			[ -n "$(cat "${GADGET}/UDC" 2>/dev/null)" ] && return 0
+
+			udc=
+			for udc_path in /sys/class/udc/*; do
+				[ -e "${udc_path}" ] || continue
+				udc=${udc_path##*/}
+				break
+			done
+			if [ -n "${udc}" ]; then
+				echo "${udc}" > "${GADGET}/UDC" && return 0
+				echo "adbd: failed to bind UDC ${udc}" >&2
+				return 1
+			fi
+		fi
+
+		sleep 1
+		tries=$((tries + 1))
+	done
+
+	echo "adbd: timed out waiting for FunctionFS/UDC" >&2
+	return 1
+}
+
+start() {
+	[ -x "${ADBD}" ] || {
+		echo "adbd: ${ADBD} is not installed" >&2
+		return 1
+	}
+	adbd_running && return 0
+
+	# This is the ADB-only Buildroot equivalent of Tina's
+	# /bin/setusbconfig adb.  It mounts configfs and FunctionFS, creates
+	# g1/configs/c.1/functions/ffs.adb, and leaves UDC binding to this
+	# service after adbd has written the descriptors.
+	[ -x "${SETUSBCONFIG}" ] || {
+		echo "adbd: ${SETUSBCONFIG} is not installed" >&2
+		return 1
+	}
+	"${SETUSBCONFIG}" adb || {
+		echo "adbd: failed to configure the USB gadget" >&2
+		return 1
+	}
+
+	start-stop-daemon -S -b -m -p "${PIDFILE}" -x "${ADBD}" -- -D || return 1
+
+	# Tina gives adbd the same high OOM priority through procd.
+	if [ -s "${PIDFILE}" ] && [ -w "/proc/$(cat "${PIDFILE}")/oom_score_adj" ]; then
+		echo -17 > "/proc/$(cat "${PIDFILE}")/oom_score_adj" 2>/dev/null || true
+	fi
+
+	bind_udc
+}
+
+stop() {
+	unbind_gadget
+	if [ -s "${PIDFILE}" ]; then
+		start-stop-daemon -K -p "${PIDFILE}" 2>/dev/null || true
+		rm -f "${PIDFILE}"
+	fi
+	[ -e "${GADGET}/configs/c.1/ffs.adb" ] && rm -f "${GADGET}/configs/c.1/ffs.adb"
+	umount "${FFS_DIR}" 2>/dev/null || true
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart|reload)
+		stop
+		start
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart}"
+		exit 1
+		;;
+esac
+
+exit $?

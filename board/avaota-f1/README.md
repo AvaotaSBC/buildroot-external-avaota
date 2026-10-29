@@ -18,13 +18,14 @@ Its init scripts start `remoteproc0`, load `v821_fmac.ko`, and then start the
 XRLINK STA/AP manager; this matches the F1 Tina flow without requiring a Tina
 checkout.
 
-ADB follows Tina's V821 FunctionFS flow. Buildroot's `android-tools` package
-provides `/usr/bin/adbd`; `S30adbd` mounts configfs and
-`/dev/usb-ffs/adb`, creates `ffs.adb`, starts `adbd -D`, and binds the first
-Sunxi UDC. The kernel configuration contains the required configfs,
-FunctionFS, and Sunxi UDC options. The legacy Tina `setusbconfig` executable
-and old Android 4.2 adbd source are intentionally not copied into this
-Buildroot tree.
+ADB is enabled by default and follows Tina's V821 FunctionFS flow. Buildroot's
+`android-tools` package provides `/usr/bin/adbd`; BusyBox init runs
+`S80adbd`, which invokes the ADB-only `setusbconfig adb` helper, mounts
+configfs and `/dev/usb-ffs/adb`, creates `ffs.adb`, starts `adbd -D`, waits for
+the FunctionFS endpoints, and binds the first Sunxi UDC. The kernel
+configuration contains the required configfs, FunctionFS, and Sunxi UDC
+options. The complete Tina helper and old Android 4.2 adbd source are not
+copied into this Buildroot tree.
 
 ## Build
 

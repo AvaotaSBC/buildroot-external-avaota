@@ -21,3 +21,8 @@ if ! grep -q '^ttyS0::respawn:/sbin/getty.*115200' "${inittab}"; then
 	echo "error: failed to set ttyS0 getty baudrate to 115200" >&2
 	exit 1
 fi
+
+# Remove the old service name when an existing Buildroot output directory is
+# rebuilt after upgrading this external tree. Fresh builds never contain it,
+# but overlay copies do not delete files left in TARGET_DIR by an earlier run.
+rm -f "${TARGET_DIR}/etc/init.d/S30adbd"
