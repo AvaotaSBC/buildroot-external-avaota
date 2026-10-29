@@ -1,1 +1,25 @@
+# Buildroot output is generated and must not be committed.  Keep these rules
+# root-anchored so source directories in the external tree remain uploadable.
 /output/
+/build/
+/dl/
+/host/
+/staging/
+/target/
+/images/
+
+# These directories contain the standalone build inputs.  In particular,
+# package/v821-firmware/firmware/*.bin is required at runtime and must not be
+# hidden by a future broad binary-file rule.
+!board/
+!board/avaota-f1/
+!board/avaota-f1/**
+!configs/
+!configs/**
+!linux/
+!linux/**
+!package/
+!package/**
+
+# Do not keep local logs even when someone creates one below a source tree.
+*.log
