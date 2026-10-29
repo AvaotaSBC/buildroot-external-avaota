@@ -18,6 +18,14 @@ Its init scripts start `remoteproc0`, load `v821_fmac.ko`, and then start the
 XRLINK STA/AP manager; this matches the F1 Tina flow without requiring a Tina
 checkout.
 
+ADB follows Tina's V821 FunctionFS flow. Buildroot's `android-tools` package
+provides `/usr/bin/adbd`; `S30adbd` mounts configfs and
+`/dev/usb-ffs/adb`, creates `ffs.adb`, starts `adbd -D`, and binds the first
+Sunxi UDC. The kernel configuration contains the required configfs,
+FunctionFS, and Sunxi UDC options. The legacy Tina `setusbconfig` executable
+and old Android 4.2 adbd source are intentionally not copied into this
+Buildroot tree.
+
 ## Build
 
 Keep the external tree, kernel, U-Boot, and image-tools repositories as
@@ -27,7 +35,7 @@ siblings, alongside the upstream Buildroot checkout:
 git clone <buildroot-external-avaota-url> buildroot-external-avaota
 git clone <linux-v821-url> linux-v821
 git clone <u-boot-v821-url> u-boot-v821
-git clone <avaota-f1-image-tools-url> avaota-f1-image-tools
+git clone <avaota-image-tools-url> avaota-image-tools
 git clone https://github.com/buildroot/buildroot.git buildroot
 cd buildroot
 git checkout 2024.02.3
@@ -40,7 +48,7 @@ The important files are `output/images/Image.gz`,
 `output/images/avaota-f1.dtb`, `output/images/rootfs.squashfs`,
 `output/images/avaota-f1-flash.img`, `output/images/avaota-f1-spinor.raw`,
 and `output/images/avaota-f1-sd.raw`.
-The post-image hook invokes the sibling `avaota-f1-image-tools` repository,
+The post-image hook invokes the sibling `avaota-image-tools` repository,
 which in turn builds U-Boot from the sibling `u-boot-v821` repository, to
 create the common Allwinner Phoenix/Dragon image plus independent raw
 SPI-NOR and SD images.

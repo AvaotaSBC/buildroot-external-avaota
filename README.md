@@ -13,7 +13,7 @@ RISC-V32 kernel configuration.
 | `buildroot-external-avaota` | Buildroot board configuration, package, firmware and rootfs/image hooks |
 | `linux-v821` | Linux 5.4.220 plus the V821 BSP and Avaota-F1 DTS/configuration |
 | `u-boot-v821` | Standalone V821 U-Boot source and Avaota-F1 NOR/SD U-Boot build wrapper |
-| `avaota-f1-image-tools` | Allwinner boot stages, board image inputs and NOR/SD image assembly |
+| `avaota-image-tools` | Reusable Allwinner image assembly; currently the `boards/avaota-f1` category |
 
 The four repositories are siblings in the verification workspace and are
 intended to become four independent repositories. The external tree refers to
@@ -35,9 +35,10 @@ checkout:
   DTS inputs, and the out-of-tree build wrapper. It follows the Buildroot
   bootloader boundary: U-Boot is built from source with the Buildroot
   RISC-V32 compiler.
-- `avaota-f1-image-tools` owns the board FEX partition/environment inputs,
-  board-specific prebuilt boot stages, Allwinner host tools, and final
-  SPI-NOR/SD image assembly. It calls the sibling `u-boot-v821` wrapper and
+- `avaota-image-tools` owns the reusable Allwinner host tools and image
+  assembly. Its current `boards/avaota-f1` category contains the FEX
+  partition/environment inputs and board-specific prebuilt boot stages. It
+  calls the sibling `u-boot-v821` wrapper and
   does not contain a second copy of U-Boot.
 - `buildroot` is the upstream Buildroot 2024.02.3 checkout.
 
@@ -48,6 +49,29 @@ optional `v821-firmware` package. The optional `v821-wifimanager` package
 contains the F1 Tina-selected XRLINK STA/AP control path, including
 `wifi_daemon` and `wifi`; it is a source package in this repository and does
 not read Tina at build time.
+
+## ADB / adbd
+
+Tina's V821 implementation was checked against
+`platform/allwinner/usb/adbd` and `platform/allwinner/usb/setusbconfig`. Its
+runtime contract is FunctionFS, not the obsolete `android_usb` sysfs API:
+`ffs.adb` is linked into a configfs gadget, `/dev/usb-ffs/adb` is mounted, and
+`adbd` publishes its descriptors before the Sunxi UDC is bound. Tina starts
+the daemon with `adbd -D` and uses `/bin/sh` for shell services.
+
+This external tree selects Buildroot's native `android-tools` `adbd` package
+(`BR2_PACKAGE_ANDROID_TOOLS_ADBD`) and keeps the same V821 contract in
+`board/avaota-f1/rootfs-overlay/etc/init.d/S30adbd`. The service creates the
+F1 gadget with VID:PID `1f3a:1002`, derives the serial number from
+`androidboot.serialno`/`snum`, mounts FunctionFS, starts `/usr/bin/adbd -D`,
+and binds the first UDC exported by the kernel. Buildroot's package patch
+uses `ADBD_NON_ANDROID`, so an ADB shell executes the Buildroot `/bin/sh`
+instead of Tina's `/system/bin/sh`.
+
+The standalone kernel configuration explicitly includes
+`CONFIG_USB_CONFIGFS_F_FS`, `CONFIG_USB_F_FS`, and `CONFIG_CONFIGFS_FS` in
+addition to the V821 Sunxi UDC options. No Tina `adbd` binary, old Android
+source tree, `setusbconfig` package, or vendor toolchain is a Buildroot input.
 
 The Linux extension file supplies the two variables that the legacy V821 BSP
 makefiles need:
@@ -84,9 +108,9 @@ The verified build emits:
 - `avaota-f1-sd.raw` (DOS/MBR-partitioned, bootable raw SD image; root is p2)
 
 The `post-image.sh` hook calls
-`../avaota-f1-image-tools/pack-avaota-f1-images.sh` after Buildroot has
+`../avaota-image-tools/pack-avaota-f1-images.sh` after Buildroot has
 produced the kernel, DTB and rootfs. The image-tools script calls
-`../u-boot-v821/build-u-boot-v821.sh` for both storage variants, creates the
+`../u-boot-v821/scripts/build-u-boot-v821.sh` for both storage variants, creates the
 Android header-v2 `boot.fex`, and assembles the common Allwinner image plus
 the two raw images. The common image follows Tina's packaging model: it
 contains both storage-specific boot files and uses the NOR partition map so
@@ -120,7 +144,7 @@ still needs a compatible 32-bit glibc/libstdc++ runtime for the Phoenix tool.
 
 From a workspace containing the five sibling directories `buildroot`,
 `buildroot-external-avaota`, `linux-v821`, `u-boot-v821`, and
-`avaota-f1-image-tools`:
+`avaota-image-tools`:
 
 ```sh
 make -C buildroot \
