@@ -1,6 +1,6 @@
 # V821 XRLINK Wi-Fi manager
 
-The V821 FMAC driver in `linux-v821` is not a cfg80211 driver. Its control
+The V821 FMAC driver in the public `linux-v8xx` repository is not a cfg80211 driver. Its control
 plane is the Tina V821 XRLINK protocol: userspace sends protocol messages
 through netlink protocol 28, while data and events travel through the E907
 remote core over RPMSG/RPBUF. The F1 Tina configuration selects this path with

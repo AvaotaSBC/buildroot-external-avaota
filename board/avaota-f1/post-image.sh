@@ -44,7 +44,7 @@ find "${BINARIES_DIR}" -maxdepth 1 -type l \
 	echo "dtb=avaota-f1.dtb"
 	echo "rootfs=rootfs.squashfs"
 	echo "rootfs_format=SquashFS xz"
-	echo "allwinner_flash_image=avaota-f1-flash.img"
+	echo "allwinner_spinor_image=avaota-f1-spinor.img"
 	echo "spinor_raw_image=avaota-f1-spinor.raw"
 	echo "sd_raw_image=avaota-f1-sd.raw"
 } > "${BINARIES_DIR}/avaota-f1-build-manifest.txt"
